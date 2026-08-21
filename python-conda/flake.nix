@@ -1,5 +1,5 @@
 {
-  description = "Python data science environment with micromamba";
+  description = "Python data science environment with standalone micromamba";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -11,13 +11,22 @@
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          micromamba
+          curl
+          gnutar
+          bzip2
         ];
 
         shellHook = ''
           export MAMBA_ROOT_PREFIX="$HOME/.mamba"
-          eval "$(micromamba shell hook --shell bash)"
-          alias mamba=micromamba
+          export PATH="$HOME/.local/bin:$PATH"
+
+          if [ -x "$HOME/.local/bin/micromamba" ]; then
+            eval "$("$HOME/.local/bin/micromamba" shell hook --shell bash)"
+            alias mamba=micromamba
+          else
+            echo "micromamba not found at $HOME/.local/bin/micromamba"
+            echo "See README.md for the one-time installation step."
+          fi
         '';
       };
     };
