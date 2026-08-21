@@ -1,0 +1,10 @@
+name: data-science
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - ipykernel
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
