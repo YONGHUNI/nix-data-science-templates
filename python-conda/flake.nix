@@ -12,7 +12,6 @@
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
           micromamba
-          conda-lock
         ];
 
         shellHook = ''
