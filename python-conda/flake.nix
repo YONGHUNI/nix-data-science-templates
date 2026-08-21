@@ -1,5 +1,5 @@
 {
-  description = "Python data science environment with standalone micromamba";
+  description = "Python data science environment with Nix-provided micromamba";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -7,26 +7,29 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+
+      # nixpkgs currently wraps mamba-cpp, which makes micromamba's shell hook
+      # see the executable as .mamba-wrapped. Build the same package without
+      # that wrapper, then let the micromamba package copy the raw binary under
+      # the correct micromamba name.
+      mambaCppUnwrapped = pkgs.mamba-cpp.overrideAttrs (_: {
+        postInstall = "";
+      });
+
+      micromambaFixed = pkgs.micromamba.override {
+        mamba-cpp = mambaCppUnwrapped;
+      };
     in
     {
       devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          curl
-          gnutar
-          bzip2
+        packages = [
+          micromambaFixed
         ];
 
         shellHook = ''
           export MAMBA_ROOT_PREFIX="$HOME/.mamba"
-          export PATH="$HOME/.local/bin:$PATH"
-
-          if [ -x "$HOME/.local/bin/micromamba" ]; then
-            eval "$("$HOME/.local/bin/micromamba" shell hook --shell bash)"
-            alias mamba=micromamba
-          else
-            echo "micromamba not found at $HOME/.local/bin/micromamba"
-            echo "See README.md for the one-time installation step."
-          fi
+          eval "$(micromamba shell hook --shell bash)"
+          alias mamba=micromamba
         '';
       };
     };
