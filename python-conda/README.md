@@ -2,18 +2,77 @@
 
 Nix provides `micromamba`; micromamba manages the project Python packages.
 
-## Create the environment
+## Enter the development shell
 
 ```bash
 nix develop
+```
+
+At this point, `micromamba` is available, but Python is not installed yet. You can create a Python environment in either of two ways.
+
+## Option 1: Create from `environment.yml`
+
+Use this when you already have an environment specification and want to reproduce it.
+
+Project-local environment:
+
+```bash
 mamba create -p ./.conda -f environment.yml
 ```
 
-In Positron, select:
+Named environment:
+
+```bash
+mamba create -n myenv -f environment.yml
+```
+
+The project-local form creates the interpreter at:
 
 ```text
 ./.conda/bin/python
 ```
+
+This is convenient for Positron because the environment stays attached to the project directory.
+
+## Option 2: Create a new environment interactively
+
+Use this when starting a new project and deciding packages as you go.
+
+```bash
+mamba create -n myenv python=3.12
+mamba activate myenv
+mamba install numpy pandas scipy matplotlib ipykernel
+```
+
+You can also create the environment inside the project instead of giving it a global name:
+
+```bash
+mamba create -p ./.conda python=3.12
+mamba activate ./.conda
+mamba install numpy pandas scipy matplotlib ipykernel
+```
+
+Conceptually:
+
+```text
+environment.yml
+→ reproduce an already specified environment
+
+new mamba environment
+→ build an environment interactively
+```
+
+These workflows can be combined. A common pattern is to create an environment interactively first, stabilize the package set, and then record a reusable environment specification for the project.
+
+## Positron
+
+For a project-local environment, select:
+
+```text
+./.conda/bin/python
+```
+
+as the Python interpreter/kernel.
 
 ## Reproducibility
 
