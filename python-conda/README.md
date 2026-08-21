@@ -1,6 +1,6 @@
 # Python + micromamba
 
-Nix provides the environment tooling; micromamba manages the project Python packages.
+Nix provides `micromamba`; micromamba manages the project Python packages.
 
 ## Create the environment
 
@@ -15,12 +15,8 @@ In Positron, select:
 ./.conda/bin/python
 ```
 
-## Reproducible lockfile
+## Reproducibility
 
-Generate a conda lockfile and commit it to Git:
+Commit `environment.yml` and the generated `flake.lock` to Git. `environment.yml` is a dependency specification, so recreating it later may resolve newer compatible package builds.
 
-```bash
-conda-lock -f environment.yml
-```
-
-The generated lockfile captures the resolved Conda package set more strictly than `environment.yml` alone.
+For stricter package locking, add a Conda lockfile workflow separately (for example with `conda-lock`) rather than assuming `conda-lock` is available as a top-level package in the pinned Nixpkgs release.
