@@ -6,7 +6,7 @@ This repository provides two approaches for each language:
 
 | Template | Environment strategy | Best for |
 |---|---|---|
-| `python-conda` | Nix-provided micromamba | Conda-compatible classes, collaboration, scientific/ML stacks |
+| `python-conda` | Nix-provided micromamba + project-local `.conda` | Conda-compatible classes, collaboration, scientific/ML stacks |
 | `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
 | `r-renv` | Nix + R + renv | Standard R project workflows and collaboration |
 | `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
@@ -26,7 +26,28 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#python-conda
 nix develop
 ```
 
-The Python + micromamba template provides micromamba through Nix and initializes it automatically in the development shell. No separate installation under `~/.local/bin` is required.
+The Python template provides micromamba through Nix and initializes it automatically. The recommended workflow is to keep the Python environment inside the project as `./.conda`.
+
+Create one with:
+
+```bash
+mamba-project python=3.12 ipykernel
+mamba activate ./.conda
+```
+
+`mamba-project` is a convenience helper equivalent to:
+
+```bash
+mamba create -p ./.conda python=3.12 ipykernel
+```
+
+Normal micromamba commands are unchanged, so named environments remain available with `mamba create -n ...` when intentionally needed.
+
+The project-local design keeps Python and Python-coupled native scientific libraries such as GDAL, PROJ, GEOS, Rasterio, and PyTorch runtime dependencies together in one environment. This also gives Positron and VS Code a stable project-specific interpreter at `./.conda/bin/python`.
+
+The micromamba package cache under `~/.mamba/pkgs` is shared across projects, while each project's actual environment remains under its own `.conda/` directory.
+
+See the generated `python-conda/README.md` for the environment boundary, IDE behavior, geospatial examples, and reproducibility guidance.
 
 ### Pure Nix Python
 
