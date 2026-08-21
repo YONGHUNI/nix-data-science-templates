@@ -27,6 +27,7 @@
         ];
 
         shellHook = ''
+          set -h
           export MAMBA_ROOT_PREFIX="$HOME/.mamba"
           eval "$(micromamba shell hook --shell bash)"
           alias mamba=micromamba
