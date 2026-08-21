@@ -29,8 +29,13 @@
         shellHook = ''
           set -h
           export MAMBA_ROOT_PREFIX="$HOME/.mamba"
+          export MAMBA_PROJECT_PREFIX="$PWD/.conda"
           eval "$(micromamba shell hook --shell bash)"
           alias mamba=micromamba
+
+          mamba-project() {
+            micromamba create -p "$MAMBA_PROJECT_PREFIX" "$@"
+          }
         '';
       };
     };
