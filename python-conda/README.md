@@ -1,28 +1,6 @@
 # Python + micromamba
 
-Nix provides the project development shell and basic tooling. Python packages are managed with a standalone micromamba installation.
-
-## One-time micromamba installation
-
-Install micromamba once per machine:
-
-```bash
-mkdir -p ~/.local/bin
-curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest \
-  | tar -xvj -C ~/.local/bin --strip-components=1 bin/micromamba
-```
-
-Verify the installation:
-
-```bash
-~/.local/bin/micromamba --version
-```
-
-The template expects micromamba at:
-
-```text
-~/.local/bin/micromamba
-```
+Nix provides `micromamba` inside the development shell; micromamba manages the Python environments and packages.
 
 ## Enter the development shell
 
@@ -32,10 +10,12 @@ nix develop
 
 The shell automatically:
 
-- adds `~/.local/bin` to `PATH`
+- provides `micromamba` from Nix
 - sets `MAMBA_ROOT_PREFIX=~/.mamba`
 - initializes the micromamba Bash shell hook
 - provides `mamba` as an alias for `micromamba`
+
+No separate micromamba installation under `~/.local/bin` is required.
 
 Named environments are stored under:
 
@@ -121,6 +101,6 @@ Install `ipykernel` in the environment if you want to use it as a Jupyter kernel
 
 ## Reproducibility
 
-Commit `environment.yml` and the generated `flake.lock` to Git. `environment.yml` is a dependency specification, so recreating it later may resolve newer compatible package builds.
+Commit `environment.yml` and the generated `flake.lock` to Git. `flake.lock` pins the Nix side, including the micromamba build. `environment.yml` is a dependency specification, so recreating it later may still resolve newer compatible Conda package builds.
 
-For stricter package locking, add a Conda lockfile workflow separately rather than assuming a lock tool is available in the pinned Nixpkgs release.
+For stricter Conda package locking, add a separate lockfile workflow.
