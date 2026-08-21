@@ -1,6 +1,28 @@
 # Python + micromamba
 
-Nix provides `micromamba`; micromamba manages the project Python packages.
+Nix provides the project development shell and basic tooling. Python packages are managed with a standalone micromamba installation.
+
+## One-time micromamba installation
+
+Install micromamba once per machine:
+
+```bash
+mkdir -p ~/.local/bin
+curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest \
+  | tar -xvj -C ~/.local/bin --strip-components=1 bin/micromamba
+```
+
+Verify the installation:
+
+```bash
+~/.local/bin/micromamba --version
+```
+
+The template expects micromamba at:
+
+```text
+~/.local/bin/micromamba
+```
 
 ## Enter the development shell
 
@@ -8,19 +30,20 @@ Nix provides `micromamba`; micromamba manages the project Python packages.
 nix develop
 ```
 
-The shell initializes micromamba automatically and uses:
+The shell automatically:
 
-```text
-~/.mamba
-```
+- adds `~/.local/bin` to `PATH`
+- sets `MAMBA_ROOT_PREFIX=~/.mamba`
+- initializes the micromamba Bash shell hook
+- provides `mamba` as an alias for `micromamba`
 
-as the micromamba root prefix. Named environments are therefore stored under:
+Named environments are stored under:
 
 ```text
 ~/.mamba/envs/<name>
 ```
 
-At this point, `micromamba` is available, but Python is not installed yet. You can create a Python environment in either of two ways.
+At this point, micromamba is ready, but Python is not installed until you create an environment.
 
 ## Option 1: Create from `environment.yml`
 
@@ -30,6 +53,7 @@ Project-local environment:
 
 ```bash
 mamba create -p ./.conda -f environment.yml
+mamba activate ./.conda
 ```
 
 Named environment:
@@ -52,17 +76,17 @@ This is convenient for Positron because the environment stays attached to the pr
 Use this when starting a new project and deciding packages as you go.
 
 ```bash
-mamba create -n myenv python=3.12
+mamba create -n myenv python=3.12 ipykernel
 mamba activate myenv
-mamba install numpy pandas scipy matplotlib ipykernel
+mamba install numpy pandas scipy matplotlib
 ```
 
 You can also create the environment inside the project instead of giving it a global name:
 
 ```bash
-mamba create -p ./.conda python=3.12
+mamba create -p ./.conda python=3.12 ipykernel
 mamba activate ./.conda
-mamba install numpy pandas scipy matplotlib ipykernel
+mamba install numpy pandas scipy matplotlib
 ```
 
 Conceptually:
@@ -99,4 +123,4 @@ Install `ipykernel` in the environment if you want to use it as a Jupyter kernel
 
 Commit `environment.yml` and the generated `flake.lock` to Git. `environment.yml` is a dependency specification, so recreating it later may resolve newer compatible package builds.
 
-For stricter package locking, add a Conda lockfile workflow separately (for example with `conda-lock`) rather than assuming `conda-lock` is available as a top-level package in the pinned Nixpkgs release.
+For stricter package locking, add a Conda lockfile workflow separately rather than assuming a lock tool is available in the pinned Nixpkgs release.
