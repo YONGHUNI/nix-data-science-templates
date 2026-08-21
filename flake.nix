@@ -5,7 +5,7 @@
     templates = {
       python-conda = {
         path = ./python-conda;
-        description = "Python data science with Nix + standalone micromamba";
+        description = "Python data science with Nix-managed micromamba";
       };
 
       python-nix = {
