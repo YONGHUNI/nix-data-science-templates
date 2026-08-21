@@ -6,7 +6,7 @@ This repository provides two approaches for each language:
 
 | Template | Environment strategy | Best for |
 |---|---|---|
-| `python-conda` | Nix + micromamba + conda-lock | Conda-compatible classes, collaboration, scientific/ML stacks |
+| `python-conda` | Nix + standalone micromamba | Conda-compatible classes, collaboration, scientific/ML stacks |
 | `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
 | `r-renv` | Nix + R + renv | Standard R project workflows and collaboration |
 | `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
@@ -25,6 +25,8 @@ cd my-project
 nix flake init -t github:YONGHUNI/nix-data-science-templates#python-conda
 nix develop
 ```
+
+The Python + micromamba template expects a standalone micromamba binary at `~/.local/bin/micromamba`. See the generated project README for the one-time installation command and environment setup examples.
 
 ### Pure Nix Python
 
