@@ -150,12 +150,6 @@ EOF
                   echo "Interpreter:  not available"
                   echo "Python:       not available"
                 fi
-
-                if [ -f "$NIMBA_PROJECT_ROOT/environment.yml" ]; then
-                  echo "Spec:         $NIMBA_PROJECT_ROOT/environment.yml"
-                else
-                  echo "Spec:         not found"
-                fi
                 ;;
 
               *)
