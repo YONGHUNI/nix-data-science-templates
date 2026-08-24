@@ -8,6 +8,11 @@
         description = "Python data science with Nix-managed micromamba";
       };
 
+      python-pixi = {
+        path = ./python-pixi;
+        description = "Python data science with Nix-managed Pixi";
+      };
+
       python-nix = {
         path = ./python-nix;
         description = "Pure Nix Python data science environment";
