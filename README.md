@@ -26,28 +26,41 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#python-conda
 nix develop
 ```
 
-The Python template provides micromamba through Nix and initializes it automatically. The recommended workflow is to keep the Python environment inside the project as `./.conda`.
+The Python template uses an intentional Nix + Conda split:
 
-Create one with:
+- Nix provides micromamba and the outer development shell.
+- The project keeps its Python runtime and Python-coupled native libraries in `./.conda`.
+- `environment.yml` describes Conda-side dependencies.
+- `~/.mamba/pkgs` is shared as a package cache across projects.
+- `.conda/` is disposable and excluded from Git.
+
+The template provides `nimba`, a small project-local helper. The default workflow is:
 
 ```bash
-mamba-project python=3.12 ipykernel
-mamba activate ./.conda
+nimba create
+nimba activate
 ```
 
-`mamba-project` is a convenience helper equivalent to:
+With no arguments, `nimba create` recreates the environment from `environment.yml`. Useful project-scoped commands include:
 
 ```bash
-mamba create -p ./.conda python=3.12 ipykernel
+nimba install xarray dask
+nimba run python analysis.py
+nimba list
+nimba status
 ```
 
-Normal micromamba commands are unchanged, so named environments remain available with `mamba create -n ...` when intentionally needed.
+`nimba` always targets the current project's `.conda`. It does not replace the standard micromamba interface: `mamba` remains available for named or global environment operations.
 
-The project-local design keeps Python and Python-coupled native scientific libraries such as GDAL, PROJ, GEOS, Rasterio, and PyTorch runtime dependencies together in one environment. This also gives Positron and VS Code a stable project-specific interpreter at `./.conda/bin/python`.
+This layout gives Positron and VS Code a predictable project-specific interpreter at:
 
-The micromamba package cache under `~/.mamba/pkgs` is shared across projects, while each project's actual environment remains under its own `.conda/` directory.
+```text
+./.conda/bin/python
+```
 
-See the generated `python-conda/README.md` for the environment boundary, IDE behavior, geospatial examples, and reproducibility guidance.
+The approach is not pure Nix. It intentionally keeps Python and ABI-coupled scientific libraries such as GDAL/PROJ/GEOS, Rasterio, or PyTorch user-space dependencies inside one Conda prefix, while Nix manages the development-shell and host-side boundary.
+
+See the generated `python-conda/README.md` for detailed `nimba` usage, IDE behavior, native-library guidance, and reproducibility notes.
 
 ### Pure Nix Python
 
