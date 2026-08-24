@@ -2,11 +2,12 @@
 
 Reproducible development environment templates for Python and R on Nix/NixOS.
 
-This repository provides two approaches for each language:
+This repository provides several approaches depending on how much of the language ecosystem you want Nix to manage directly.
 
 | Template | Environment strategy | Best for |
 |---|---|---|
-| `python-conda` | Nix-provided micromamba + project-local `.conda` | Conda-compatible classes, collaboration, scientific/ML stacks |
+| `python-conda` | Nix-provided micromamba + one project-local `.conda` | Conda-compatible classes, collaboration, ordinary scientific/ML projects |
+| `python-pixi` | Nix-provided Pixi + project-local `.pixi` + `pixi.lock` | Project-oriented Python workflows, stronger locking, tasks, multiple related environments |
 | `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
 | `r-renv` | Nix + R + renv | Standard R project workflows and collaboration |
 | `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
@@ -17,7 +18,7 @@ All templates pin `nixpkgs` through `flake.lock` after the first `nix develop`.
 
 You do not need to clone the whole repository. Create an empty project directory and initialize only the template you want.
 
-### Python + micromamba
+### Python + micromamba (`python-conda`)
 
 ```bash
 mkdir my-project
@@ -26,41 +27,64 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#python-conda
 nix develop
 ```
 
-The Python template uses an intentional Nix + Conda split:
+The template intentionally uses one canonical project-local Conda environment:
 
-- Nix provides micromamba and the outer development shell.
-- The project keeps its Python runtime and Python-coupled native libraries in `./.conda`.
-- `environment.yml` describes Conda-side dependencies.
-- `~/.mamba/pkgs` is shared as a package cache across projects.
-- `.conda/` is disposable and excluded from Git.
+```text
+./.conda
+```
 
-The template provides `nimba`, a small project-local helper. The default workflow is:
+Nix provides micromamba and the outer development shell; Conda manages Python and Python-coupled native libraries. The `nimba` helper keeps common project-local operations short:
 
 ```bash
 nimba create
 nimba activate
-```
-
-With no arguments, `nimba create` recreates the environment from `environment.yml`. Useful project-scoped commands include:
-
-```bash
 nimba install xarray dask
 nimba run python analysis.py
 nimba list
 nimba status
 ```
 
-`nimba` always targets the current project's `.conda`. It does not replace the standard micromamba interface: `mamba` remains available for named or global environment operations.
+With no arguments, `nimba create` creates `./.conda` from `environment.yml`. `nimba` remains intentionally single-environment and does not replace the standard `mamba` interface.
 
-This layout gives Positron and VS Code a predictable project-specific interpreter at:
+This gives Positron and VS Code a predictable interpreter at:
 
 ```text
 ./.conda/bin/python
 ```
 
-The approach is not pure Nix. It intentionally keeps Python and ABI-coupled scientific libraries such as GDAL/PROJ/GEOS, Rasterio, or PyTorch user-space dependencies inside one Conda prefix, while Nix manages the development-shell and host-side boundary.
+Use this template when a project needs one main Python environment and compatibility with conventional Conda `environment.yml` workflows matters.
 
-See the generated `python-conda/README.md` for detailed `nimba` usage, IDE behavior, native-library guidance, and reproducibility notes.
+### Python + Pixi (`python-pixi`)
+
+```bash
+mkdir my-project
+cd my-project
+nix flake init -t github:YONGHUNI/nix-data-science-templates#python-pixi
+nix develop
+pixi install
+```
+
+Here Nix provides the Pixi executable while Pixi manages the project Python environment and dependency lockfile.
+
+The project uses:
+
+```text
+pixi.toml     # dependency/project manifest
+pixi.lock     # generated resolved dependency lock; commit this
+.pixi/        # generated runtime environment; do not commit
+```
+
+Typical commands are:
+
+```bash
+pixi add xarray dask
+pixi shell
+pixi run python analysis.py
+```
+
+Prefer this template when one repository needs richer project-level environment composition, tasks, or multiple related environments—for example comparing several weather/AI models whose Python, JAX, PyTorch, or CUDA user-space requirements may differ.
+
+The distinction is intentional: `python-conda` + `nimba` stays a thin, single-environment Conda workflow; `python-pixi` is the option for projects that need Pixi's broader project/environment model rather than extending `nimba` into another package manager.
 
 ### Pure Nix Python
 
@@ -89,7 +113,7 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#r-nix
 nix develop
 ```
 
-The default template is `python-conda`, so this is equivalent to selecting it explicitly:
+The default template remains `python-conda`, so this is equivalent to selecting it explicitly:
 
 ```bash
 nix flake init -t github:YONGHUNI/nix-data-science-templates
@@ -101,4 +125,4 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates
 nix flake show github:YONGHUNI/nix-data-science-templates
 ```
 
-See the README inside each generated project for the remaining environment-specific steps.
+See the README inside each generated project for environment-specific details.
