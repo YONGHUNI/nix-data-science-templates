@@ -9,7 +9,8 @@ This repository provides several approaches depending on how much of the languag
 | `python-conda` | Nix-provided micromamba + one project-local `.conda` | Conda-compatible classes, collaboration, ordinary scientific/ML projects |
 | `python-pixi` | Nix-provided Pixi + project-local `.pixi` + `pixi.lock` | Project-oriented Python workflows, stronger locking, tasks, multiple related environments |
 | `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
-| `r-renv` | Nix + R + renv | Standard R project workflows and collaboration |
+| `r-pixi` | Nix-provided Pixi + project-local R + `.pixi` + `pixi.lock` | Unified Pixi workflow for R, fixed R/runtime dependencies, local + server research |
+| `r-renv` | Nix + R + renv | Standard CRAN/renv workflows and collaboration |
 | `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
 
 All templates pin `nixpkgs` through `flake.lock` after the first `nix develop`.
@@ -95,6 +96,33 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#python-nix
 nix develop
 ```
 
+### R + Pixi (`r-pixi`)
+
+```bash
+mkdir my-project
+cd my-project
+nix flake init -t github:YONGHUNI/nix-data-science-templates#r-pixi
+nix develop
+pixi install
+```
+
+This mirrors the Python Pixi model: Nix supplies Pixi, while Pixi owns the project-local R runtime, R packages, native dependencies, and `pixi.lock`.
+
+The starter manifest fixes R at `4.5.3` and includes IRkernel, data.table, dplyr, and ggplot2. Add additional packages through Pixi:
+
+```bash
+pixi add r-tidyr r-readr
+pixi add r-sf r-terra
+```
+
+On NixOS, enable `programs.nix-ld.enable = true;` at the host level so conda-forge binaries can run.
+
+For Positron, enable the experimental `positron.r.interpreters.pixiDiscovery` setting and select the Pixi-managed R installation for the current project.
+
+This is the preferred R template when you want the same project-local environment model for Python and R, especially when the same repository should run on both an x86_64 Linux laptop/workstation and a headless x86_64 Linux server.
+
+It can substantially reduce the need for Rocker in ordinary research workflows, but it does not replace Docker/OCI isolation when an actual container image is part of the requirement.
+
 ### R + renv
 
 ```bash
@@ -103,6 +131,8 @@ cd my-project
 nix flake init -t github:YONGHUNI/nix-data-science-templates#r-renv
 nix develop
 ```
+
+Use this when compatibility with established CRAN/renv workflows is more important than using Pixi as the single project package manager.
 
 ### Pure Nix R
 

@@ -18,6 +18,11 @@
         description = "Pure Nix Python data science environment";
       };
 
+      r-pixi = {
+        path = ./r-pixi;
+        description = "R data science with Nix-managed Pixi";
+      };
+
       r-renv = {
         path = ./r-renv;
         description = "R data science with Nix + renv";
