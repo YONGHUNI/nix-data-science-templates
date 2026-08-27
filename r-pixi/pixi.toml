@@ -9,3 +9,8 @@ r-irkernel = "*"
 "r-data.table" = "*"
 r-dplyr = "*"
 r-ggplot2 = "*"
+
+# R source-package build toolchain (roughly analogous to Rtools on Windows)
+compilers = "*"
+make = "*"
+pkg-config = "*"
