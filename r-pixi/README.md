@@ -22,7 +22,12 @@ IRkernel
 data.table
 dplyr
 ggplot2
+compilers
+make
+pkg-config
 ```
+
+The compiler toolchain is included so common CRAN source packages can be built inside the Pixi environment when a binary package is unavailable or when a newer source release is required. On Linux this is conceptually similar to keeping Rtools available on Windows, but the compiler suite and build tools are resolved as project dependencies rather than installed globally.
 
 ## Enter the Nix development shell
 
@@ -82,6 +87,28 @@ pixi add r-sf r-terra
 ```
 
 Prefer `pixi add` over `install.packages()` for dependencies that should be reproducible. A package installed manually from inside R is not represented by `pixi.toml` / `pixi.lock`.
+
+## Building CRAN packages from source
+
+The base template includes the conda-forge `compilers` metapackage plus `make` and `pkg-config`. This provides the standard C, C++, and Fortran compiler toolchain needed by many R source packages.
+
+For example:
+
+```r
+install.packages("somepackage", type = "source")
+```
+
+can build against the compiler suite available inside the Pixi environment.
+
+The compiler suite does not automatically provide every external library a package may need. Add project-specific native dependencies through Pixi as required. For GIS packages, for example:
+
+```bash
+pixi add gdal geos proj
+```
+
+Other projects may require libraries such as NetCDF, HDF5, OpenSSL, libcurl, or XML libraries. Keep those dependencies in `pixi.toml` rather than relying on accidental host-system availability.
+
+A package installed directly with `install.packages()` is not captured by `pixi.lock`. Use direct source installation for exceptional or temporary cases; if long-term reproducibility matters, record and pin the source explicitly in the project workflow.
 
 ## Why `renv` is not included
 
@@ -165,13 +192,14 @@ Nix / flake.nix
 Pixi / pixi.toml + pixi.lock
 ├── R runtime
 ├── R packages
+├── compiler/build toolchain
 ├── native dependencies
 └── reproducible dependency resolution
 ```
 
 ## Rocker
 
-For interactive research and batch analysis on similarly configured NixOS/Linux machines, this template can remove much of the need for a Rocker container: the R runtime, R packages, and their native dependencies are already project-local and locked by Pixi.
+For interactive research and batch analysis on similarly configured NixOS/Linux machines, this template can remove much of the need for a Rocker container: the R runtime, R packages, build toolchain, and their native dependencies are already project-local and locked by Pixi.
 
 Rocker still has a distinct role when a project needs a Docker/OCI image boundary, deployment as a container, isolation from the host OS, CI based on container images, or easy handoff to collaborators whose environment is Docker rather than Nix/Pixi.
 
@@ -188,4 +216,4 @@ Commit:
 
 Do not commit `.pixi/`.
 
-`flake.lock` pins the Nix side, including the Pixi executable. `pixi.lock` pins the R runtime, R packages, and resolved conda-forge native dependencies.
+`flake.lock` pins the Nix side, including the Pixi executable. `pixi.lock` pins the R runtime, R packages, compiler/build toolchain, and resolved conda-forge native dependencies.
