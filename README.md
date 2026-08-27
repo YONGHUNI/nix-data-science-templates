@@ -9,7 +9,7 @@ This repository provides several approaches depending on how much of the languag
 | `python-conda` | Nix-provided micromamba + one project-local `.conda` | Conda-compatible classes, collaboration, ordinary scientific/ML projects |
 | `python-pixi` | Nix-provided Pixi + project-local `.pixi` + `pixi.lock` | Project-oriented Python workflows, stronger locking, tasks, multiple related environments |
 | `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
-| `r-pixi` | Nix-provided Pixi + project-local R + `.pixi` + `pixi.lock` | Unified Pixi workflow for R, fixed R/runtime dependencies, local + server research |
+| `r-pixi` | Nix-provided Pixi + project-local R + compiler toolchain + `.pixi` + `pixi.lock` | Unified Pixi workflow for R, fixed R/runtime dependencies, source builds, local + server research |
 | `r-renv` | Nix + R + renv | Standard CRAN/renv workflows and collaboration |
 | `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
 
@@ -106,13 +106,21 @@ nix develop
 pixi install
 ```
 
-This mirrors the Python Pixi model: Nix supplies Pixi, while Pixi owns the project-local R runtime, R packages, native dependencies, and `pixi.lock`.
+This mirrors the Python Pixi model: Nix supplies Pixi, while Pixi owns the project-local R runtime, R packages, native dependencies, source-build toolchain, and `pixi.lock`.
 
-The starter manifest fixes R at `4.5.3` and includes IRkernel, data.table, dplyr, and ggplot2. Add additional packages through Pixi:
+The starter manifest fixes R at `4.5.3` and includes IRkernel, data.table, dplyr, ggplot2, the conda-forge `compilers` metapackage, `make`, and `pkg-config`. This gives common CRAN source packages a project-local C/C++/Fortran build environment instead of relying on a globally installed compiler suite.
+
+Add additional packages through Pixi:
 
 ```bash
 pixi add r-tidyr r-readr
 pixi add r-sf r-terra
+```
+
+Add native dependencies required by source builds through Pixi as well, for example:
+
+```bash
+pixi add gdal geos proj
 ```
 
 On NixOS, enable `programs.nix-ld.enable = true;` at the host level so conda-forge binaries can run.
