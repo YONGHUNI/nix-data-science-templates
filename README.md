@@ -1,161 +1,114 @@
-# Nix Data Science Templates
+# Nix Data Science Templates for Positron
 
-Reproducible development environment templates for Python and R on Nix/NixOS.
+Reproducible Python and R project templates for Positron on Nix/NixOS.
 
-This repository provides several approaches depending on how much of the language ecosystem you want Nix to manage directly.
+This repository now focuses on the two workflows that were validated with Positron locally and over Remote SSH:
 
-| Template | Environment strategy | Best for |
+| Template | Runtime manager | Intended use |
 |---|---|---|
-| `python-conda` | Nix-provided micromamba + one project-local `.conda` | Conda-compatible classes, collaboration, ordinary scientific/ML projects |
-| `python-pixi` | Nix-provided Pixi + project-local `.pixi` + `pixi.lock` | Project-oriented Python workflows, stronger locking, tasks, multiple related environments |
-| `python-nix` | Pure Nix Python environment | Maximum Nix reproducibility |
-| `r-pixi` | Nix-provided Pixi + project-local R + compiler toolchain + `.pixi` + `pixi.lock` | Unified Pixi workflow for R, fixed R/runtime dependencies, source builds, local + server research |
-| `r-renv` | Nix + R + renv | Standard CRAN/renv workflows and collaboration |
-| `r-nix` | Pure Nix R environment | Maximum Nix reproducibility |
+| `python-pixi` | Pixi | Python data science, notebooks, scientific/ML projects |
+| `r-pixi` | Pixi | R data science, IRkernel, native/source package builds |
 
-All templates pin `nixpkgs` through `flake.lock` after the first `nix develop`.
+The previous Conda, pure-Nix, and renv templates are preserved on the archive branch `archive/pre-positron-cleanup-2026-08-28`.
 
-## Create a project from a template
+## Host prerequisites on NixOS
 
-You do not need to clone the whole repository. Create an empty project directory and initialize only the template you want.
+The project templates intentionally do not modify the host. For Pixi/conda-forge compatibility, the NixOS host should provide:
 
-### Python + micromamba (`python-conda`)
+```nix
+{
+  programs.nix-ld.enable = true;
 
-```bash
-mkdir my-project
-cd my-project
-nix flake init -t github:YONGHUNI/nix-data-science-templates#python-conda
-nix develop
+  systemd.tmpfiles.rules = [
+    "d /usr/bin 0755 root root -"
+    "L+ /usr/bin/which - - - - ${pkgs.which}/bin/which"
+  ];
+}
 ```
 
-The template intentionally uses one canonical project-local Conda environment:
+`nix-ld` allows generic dynamically linked binaries from Pixi/conda-forge to run on NixOS. The `/usr/bin/which` compatibility link is needed by the current conda-forge R startup path on NixOS.
+
+## Positron and Pixi discovery
+
+Each project pins the Pixi executable through its Nix flake and keeps its runtime under the project directory. No global Pixi installation is required for normal shell use.
+
+Positron's Python support can discover project-local Pixi Python environments. For R, enable:
 
 ```text
-./.conda
+positron.r.interpreters.pixiDiscovery
 ```
 
-Nix provides micromamba and the outer development shell; Conda manages Python and Python-coupled native libraries. The `nimba` helper keeps common project-local operations short:
+Current Positron R discovery searches for `pixi` on the extension-host `PATH` and then at `~/.pixi/bin/pixi`. If Positron itself is not launched from `nix develop`, a small user-level dispatcher at that fallback path can delegate calls back into the current project's flake. This workaround belongs in the user's host/Home Manager configuration rather than in each project template.
+
+The project remains reproducible because the dispatcher does not provide its own Pixi package; it invokes the project-pinned Pixi from `nix develop`.
+
+## Create a Python project
 
 ```bash
-nimba create
-nimba activate
-nimba install xarray dask
-nimba run python analysis.py
-nimba list
-nimba status
-```
-
-With no arguments, `nimba create` creates `./.conda` from `environment.yml`. `nimba` remains intentionally single-environment and does not replace the standard `mamba` interface.
-
-This gives Positron and VS Code a predictable interpreter at:
-
-```text
-./.conda/bin/python
-```
-
-Use this template when a project needs one main Python environment and compatibility with conventional Conda `environment.yml` workflows matters.
-
-### Python + Pixi (`python-pixi`)
-
-```bash
-mkdir my-project
-cd my-project
+mkdir my-python-project
+cd my-python-project
 nix flake init -t github:YONGHUNI/nix-data-science-templates#python-pixi
 nix develop
 pixi install
 ```
 
-Here Nix provides the Pixi executable while Pixi manages the project Python environment and dependency lockfile.
-
-The project uses:
+The generated project uses:
 
 ```text
-pixi.toml     # dependency/project manifest
-pixi.lock     # generated resolved dependency lock; commit this
-.pixi/        # generated runtime environment; do not commit
+flake.nix
+flake.lock
+pixi.toml
+pixi.lock      # commit this
+.pixi/         # generated; do not commit
 ```
 
-Typical commands are:
+Typical commands:
 
 ```bash
 pixi add xarray dask
-pixi shell
 pixi run python analysis.py
+pixi shell
 ```
 
-Prefer this template when one repository needs richer project-level environment composition, tasks, or multiple related environments—for example comparing several weather/AI models whose Python, JAX, PyTorch, or CUDA user-space requirements may differ.
+`ipykernel` is included so the environment can be used directly from Positron notebooks.
 
-The distinction is intentional: `python-conda` + `nimba` stays a thin, single-environment Conda workflow; `python-pixi` is the option for projects that need Pixi's broader project/environment model rather than extending `nimba` into another package manager.
-
-### Pure Nix Python
+## Create an R project
 
 ```bash
-mkdir my-project
-cd my-project
-nix flake init -t github:YONGHUNI/nix-data-science-templates#python-nix
-nix develop
-```
-
-### R + Pixi (`r-pixi`)
-
-```bash
-mkdir my-project
-cd my-project
+mkdir my-r-project
+cd my-r-project
 nix flake init -t github:YONGHUNI/nix-data-science-templates#r-pixi
 nix develop
 pixi install
 ```
 
-This mirrors the Python Pixi model: Nix supplies Pixi, while Pixi owns the project-local R runtime, R packages, native dependencies, source-build toolchain, and `pixi.lock`.
+The starter environment contains R, IRkernel, common data-science packages, and a C/C++/Fortran source-build toolchain.
 
-The starter manifest fixes R at `4.5.3` and includes IRkernel, data.table, dplyr, ggplot2, the conda-forge `compilers` metapackage, `make`, and `pkg-config`. This gives common CRAN source packages a project-local C/C++/Fortran build environment instead of relying on a globally installed compiler suite.
-
-Add additional packages through Pixi:
+Typical commands:
 
 ```bash
-pixi add r-tidyr r-readr
+pixi run R
+pixi run Rscript analysis.R
 pixi add r-sf r-terra
 ```
 
-Add native dependencies required by source builds through Pixi as well, for example:
+Prefer `pixi add` for dependencies that should be represented by `pixi.toml` and `pixi.lock`. Direct `install.packages()` remains useful for exceptional source installs but is not captured by the Pixi lockfile.
 
-```bash
-pixi add gdal geos proj
+## Local and Remote SSH workflow
+
+The same project layout is used on a workstation and a headless NixOS server:
+
+```text
+Positron
+  -> local or Remote SSH extension host
+  -> project flake
+  -> project-pinned Pixi
+  -> project-local .pixi runtime
 ```
 
-On NixOS, enable `programs.nix-ld.enable = true;` at the host level so conda-forge binaries can run.
+For remote work, run `pixi install` on the remote machine so `.pixi/` is created for that host. Commit `flake.lock` and `pixi.lock`; never commit `.pixi/`.
 
-For Positron, enable the experimental `positron.r.interpreters.pixiDiscovery` setting and select the Pixi-managed R installation for the current project.
-
-This is the preferred R template when you want the same project-local environment model for Python and R, especially when the same repository should run on both an x86_64 Linux laptop/workstation and a headless x86_64 Linux server.
-
-It can substantially reduce the need for Rocker in ordinary research workflows, but it does not replace Docker/OCI isolation when an actual container image is part of the requirement.
-
-### R + renv
-
-```bash
-mkdir my-project
-cd my-project
-nix flake init -t github:YONGHUNI/nix-data-science-templates#r-renv
-nix develop
-```
-
-Use this when compatibility with established CRAN/renv workflows is more important than using Pixi as the single project package manager.
-
-### Pure Nix R
-
-```bash
-mkdir my-project
-cd my-project
-nix flake init -t github:YONGHUNI/nix-data-science-templates#r-nix
-nix develop
-```
-
-The default template remains `python-conda`, so this is equivalent to selecting it explicitly:
-
-```bash
-nix flake init -t github:YONGHUNI/nix-data-science-templates
-```
+If the project path contains symlinked directory components, tooling that passes the project to `nix develop path:...` should canonicalize the path first (`pwd -P` / `realpath`). Nix rejects `path:` inputs whose intermediate path components are symlinks.
 
 ## Inspect available templates
 
@@ -163,4 +116,10 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates
 nix flake show github:YONGHUNI/nix-data-science-templates
 ```
 
-See the README inside each generated project for environment-specific details.
+The default template is `python-pixi`:
+
+```bash
+nix flake init -t github:YONGHUNI/nix-data-science-templates
+```
+
+See each template's README for language-specific details.
