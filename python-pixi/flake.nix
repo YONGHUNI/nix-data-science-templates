@@ -11,6 +11,7 @@
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = [
+          pkgs.bashInteractive
           pkgs.pixi
         ];
 
