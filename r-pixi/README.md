@@ -27,7 +27,7 @@ make
 pkg-config
 ```
 
-The compiler toolchain is included so common CRAN source packages can be built inside the Pixi environment when a binary package is unavailable or when a newer source release is required. On Linux this is conceptually similar to keeping Rtools available on Windows, but the compiler suite and build tools are resolved as project dependencies rather than installed globally.
+The compiler toolchain is included as a convenience for projects that may need to build CRAN packages from source. It is not required for Positron discovery or for R packages already available from conda-forge. On Linux this is conceptually similar to keeping Rtools available on Windows, but the compiler suite and build tools are resolved as project dependencies rather than installed globally.
 
 ## Enter the Nix development shell
 
@@ -126,7 +126,7 @@ Keep the existing `r-renv` template for projects that are specifically CRAN/renv
 
 ## Positron
 
-Positron has experimental discovery support for Pixi-managed R installations.
+Positron has Pixi discovery support for R installations. For an open workspace with `pixi.toml`, Positron queries Pixi for the project environments and looks for the R executable inside the resolved Pixi environment.
 
 In Positron Settings, enable:
 
@@ -138,7 +138,7 @@ After `pixi install`, select the R interpreter associated with the current Pixi 
 
 The project-local executable lives under `.pixi/`; do not hard-code its internal resolved path into the repository.
 
-`r-irkernel` is included so the environment can also be used for R Jupyter notebooks.
+`r-irkernel` is included for Jupyter/notebook use. Positron's native R console discovery does not require IRkernel; it discovers the Pixi environment and uses the R executable under `.pixi/envs/<environment>/bin/R`.
 
 ## Laptop and server workflow
 
