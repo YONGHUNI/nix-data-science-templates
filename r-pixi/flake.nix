@@ -9,6 +9,13 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
+      packages.${system}.pixi = pkgs.pixi;
+
+      apps.${system}.pixi = {
+        type = "app";
+        program = "${pkgs.pixi}/bin/pixi";
+      };
+
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           pkgs.bashInteractive
