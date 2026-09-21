@@ -1,0 +1,43 @@
+{
+  description = "Python data science environment with Nix-provided Pixi";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+
+  outputs = { nixpkgs, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      packages.${system}.pixi = pkgs.pixi;
+
+      apps.${system}.pixi = {
+        type = "app";
+        program = "${pkgs.pixi}/bin/pixi";
+      };
+
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [
+          pkgs.bashInteractive
+          pkgs.pixi
+        ];
+
+        shellHook = ''
+          export PIXI_CACHE_DIR="/lscratch/$USER/pixi-cache"
+
+          mkdir -p \
+            "$PIXI_CACHE_DIR" \
+            "/lscratch/$USER/pixi-envs" \
+            ".pixi"
+
+          printf 'detached-environments = "/lscratch/%s/pixi-envs"\n' "$USER" \
+            > .pixi/config.toml
+
+          if [ -f /etc/NIXOS ] && [ ! -e /lib64/ld-linux-x86-64.so.2 ]; then
+            echo "python-pixi: NixOS needs programs.nix-ld.enable = true for Conda binaries." >&2
+          fi
+        '';
+
+      };
+    };
+}
