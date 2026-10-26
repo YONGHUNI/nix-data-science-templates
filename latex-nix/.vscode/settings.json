@@ -1,0 +1,41 @@
+{
+  "latex-workshop.latex.build.forceRecipeUsage": true,
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk (Nix)",
+      "tools": [
+        "latexmk-nix"
+      ]
+    }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk-nix",
+      "command": "nix",
+      "args": [
+        "develop",
+        "--command",
+        "latexmk",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-halt-on-error",
+        "-pdfxe",
+        "%DOC%"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipe.default": "first",
+  "latex-workshop.formatting.latex": "tex-fmt",
+  "latex-workshop.formatting.tex-fmt.path": "nix",
+  "latex-workshop.formatting.tex-fmt.args": [
+    "develop",
+    "--command",
+    "tex-fmt",
+    "--nowrap"
+  ],
+  "[latex]": {
+    "editor.formatOnSave": false
+  },
+  "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click"
+}

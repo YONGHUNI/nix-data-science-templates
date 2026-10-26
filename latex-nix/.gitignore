@@ -1,0 +1,18 @@
+# LaTeX / latexmk auxiliary files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.xdv
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
+
+# Compiled PDFs are outputs: choose whether to commit them per project.

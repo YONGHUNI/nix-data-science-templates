@@ -8,6 +8,7 @@ This repository now focuses on the two workflows that were validated with Positr
 |---|---|---|
 | `python-pixi` | Pixi | Python data science, notebooks, scientific/ML projects |
 | `r-pixi` | Pixi | R data science, IRkernel, native/source package builds |
+| `latex-nix` | Nix | XeLaTeX documents, PDF preview, SyncTeX, manual tex-fmt in Positron |
 
 The previous Conda, pure-Nix, and renv templates are preserved on the archive branch `archive/pre-positron-cleanup-2026-08-28`.
 
@@ -123,3 +124,13 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates
 ```
 
 See each template's README for language-specific details.
+
+## Create a LaTeX project
+
+```bash
+mkdir my-latex-project && cd my-latex-project
+nix flake init -t github:YONGHUNI/nix-data-science-templates#latex-nix
+nix develop --command latexmk -synctex=1 -xelatex -pdfxe main.tex
+```
+
+The template provides a pinned Nix TeX Live toolchain, LaTeX Workshop recipe, PDF-to-source SyncTeX, manual formatting, and Positron build/clean tasks. See [latex-nix/README.md](latex-nix/README.md).

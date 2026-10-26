@@ -18,6 +18,11 @@
         description = "R data science for Positron with Nix-managed Pixi";
       };
 
+      latex-nix = {
+        path = ./latex-nix;
+        description = "XeLaTeX + latexmk + tex-fmt for Positron, pinned by Nix";
+      };
+
       default = self.templates.python-pixi;
     };
   };
