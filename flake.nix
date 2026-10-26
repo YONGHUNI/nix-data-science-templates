@@ -10,7 +10,7 @@
 
       python-pixi-sapelo2 = {
         path = ./python-pixi-sapelo2;
-        description = "Python data science on UGA Sapelo2 HPC with Nix-managed Pixi";
+        description = "Python + Pixi on Sapelo2 with fast /lscratch cache and environments";
       };
 
       r-pixi = {

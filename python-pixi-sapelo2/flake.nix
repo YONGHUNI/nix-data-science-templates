@@ -1,5 +1,5 @@
 {
-  description = "Python data science environment with Nix-provided Pixi";
+  description = "Sapelo2 Python + Pixi using high-speed /lscratch storage";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 

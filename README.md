@@ -7,7 +7,7 @@ Reusable, reproducible **editor-independent** development environments for resea
 | Template | Environment | Intended use |
 |---|---|---|
 | `python-pixi` | Nix + Pixi | Python, scientific computing, notebooks, ML |
-| `python-pixi-sapelo2` | Nix + Pixi | Python on UGA Sapelo2 HPC (rootless Nix workflow) |
+| `python-pixi-sapelo2` | Nix + Pixi | Sapelo2 Python environment with Pixi cache and environments on fast `/lscratch` storage |
 | `r-pixi` | Nix + Pixi | R, IRkernel, native/source package builds |
 | `latex-nix` | Nix | XeLaTeX, latexmk, tex-fmt, SyncTeX-enabled PDF builds |
 
@@ -40,6 +40,10 @@ pixi add xarray dask        # example for Python
 ```
 
 Commit `flake.lock` and `pixi.lock`. Do not commit the generated `.pixi/` environment. `ipykernel` and `IRkernel` support standard Jupyter clients and compatible editors; they do not require any particular IDE.
+
+### Sapelo2 storage optimization
+
+Unlike the general `python-pixi` preset, `python-pixi-sapelo2` is designed to reduce storage I/O bottlenecks on Sapelo2. Its shell hook sets `PIXI_CACHE_DIR=/lscratch/$USER/pixi-cache` and configures detached Pixi environments in `/lscratch/$USER/pixi-envs` through `.pixi/config.toml`. Rootless Nix may be needed on the cluster, but it is not the defining difference of this preset. Check scratch retention policies before storing anything important there.
 
 ### LaTeX
 
