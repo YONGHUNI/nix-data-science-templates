@@ -1,6 +1,6 @@
-# XeLaTeX + Nix + Positron
+# XeLaTeX + Nix
 
-Reusable LaTeX project with a pinned Nix development environment, XeLaTeX/latexmk, `tex-fmt`, LaTeX Workshop settings, SyncTeX, and build/clean tasks. No Python/Pixi required.
+Editor-independent LaTeX project with a pinned Nix development environment, XeLaTeX/latexmk, `tex-fmt`, and SyncTeX. Optional `.vscode/` integration provides LaTeX Workshop recipes and build/clean tasks. No Python/Pixi required.
 
 ## Initialize
 
@@ -10,13 +10,13 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates#latex-nix
 nix develop --command latexmk -synctex=1 -xelatex -pdfxe main.tex
 ```
 
-Commit the generated `flake.lock`; it pins the same Nixpkgs revision as the template's initial `flake.lock`. On NixOS, open the project in Positron from a normal terminal rather than an unrelated project's Nix shell.
+Commit the generated `flake.lock`; it pins the same Nixpkgs revision as the template's initial `flake.lock`. Launch your editor from a normal shell rather than an unrelated project's Nix shell if you want to avoid inheriting another project's environment.
 
-## Positron
+## Optional VS Code-compatible editor integration
 
-Install LaTeX Workshop. Open `main.tex` and use its Build command to invoke `nix develop --command latexmk`, or use `Ctrl+Shift+B` to run the default build task. The internal PDF viewer supports double-click inverse SyncTeX; source-to-PDF synchronization works with the generated `.synctex.gz`.
+The included `.vscode/` settings are an **optional convenience**, not a requirement for using the template. In editors supporting VS Code extensions/tasks (including VS Code and Positron), install LaTeX Workshop, open `main.tex`, and use its Build command to invoke `nix develop --command latexmk`, or use `Ctrl+Shift+B` to run the default build task. In the internal PDF viewer, double-click inverse SyncTeX is configured; source-to-PDF synchronization uses the generated `.synctex.gz`. In other editors, use the CLI build commands below and configure SyncTeX with the editor's own PDF viewer if desired.
 
-Manual formatting (typically `Shift+Alt+F`) uses `tex-fmt` through Nix. Format-on-save is disabled to avoid unexpected whole-document edits.
+Manual formatting (typically `Shift+Alt+F` in compatible editors) uses `tex-fmt` through Nix. Format-on-save is disabled to avoid unexpected whole-document edits. For terminal use, invoke `nix develop --command tex-fmt` with options appropriate for your project.
 
 ## CLI
 

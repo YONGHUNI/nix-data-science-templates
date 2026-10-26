@@ -27,7 +27,7 @@ make
 pkg-config
 ```
 
-The compiler toolchain is included as a convenience for projects that may need to build CRAN packages from source. It is not required for Positron discovery or for R packages already available from conda-forge. On Linux this is conceptually similar to keeping Rtools available on Windows, but the compiler suite and build tools are resolved as project dependencies rather than installed globally.
+The compiler toolchain is included as a convenience for projects that may need to build CRAN packages from source. It is not required merely for editor discovery or for R packages already available from conda-forge. On Linux this is conceptually similar to keeping Rtools available on Windows, but the compiler suite and build tools are resolved as project dependencies rather than installed globally.
 
 ## Enter the Nix development shell
 
@@ -124,21 +124,11 @@ Adding `renv` by default would create two overlapping package managers.
 
 Keep the existing `r-renv` template for projects that are specifically CRAN/renv-oriented, rely heavily on R packages that are not practical to obtain through conda-forge, or need compatibility with an established renv workflow.
 
-## Positron
+## Optional editor and notebook integration
 
-Positron has Pixi discovery support for R installations. For an open workspace with `pixi.toml`, Positron queries Pixi for the project environments and looks for the R executable inside the resolved Pixi environment.
+The project-local R interpreter lives under `.pixi/`; point your preferred editor at that environment after `pixi install` or use `pixi run R` in a terminal. Do not hard-code an internal resolved path into the repository.
 
-In Positron Settings, enable:
-
-```text
-positron.r.interpreters.pixiDiscovery
-```
-
-After `pixi install`, select the R interpreter associated with the current Pixi project.
-
-The project-local executable lives under `.pixi/`; do not hard-code its internal resolved path into the repository.
-
-`r-irkernel` is included for Jupyter/notebook use. Positron's native R console discovery does not require IRkernel; it discovers the Pixi environment and uses the R executable under `.pixi/envs/<environment>/bin/R`.
+`r-irkernel` is included for standard Jupyter-compatible notebooks. Positron users can optionally enable `positron.r.interpreters.pixiDiscovery` to discover Pixi R environments; this setting is not required by the template.
 
 ## Laptop and server workflow
 
@@ -165,7 +155,7 @@ For a remote/headless server, normal batch execution is:
 pixi run Rscript analysis.R
 ```
 
-When using Positron against a remote workspace, resolve the Pixi environment on the remote host and use the remote Pixi-managed R interpreter.
+When using any editor against a remote workspace, resolve the Pixi environment on the remote host and use its Pixi-managed R interpreter.
 
 The base template deliberately contains no GPU-specific R dependencies. This keeps the same project environment usable on both a laptop without CUDA and a GPU server. If an R project later needs CUDA-specific packages, add them as a dedicated Pixi feature/environment rather than making the portable base environment GPU-dependent.
 

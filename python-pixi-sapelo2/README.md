@@ -105,11 +105,9 @@ Pixi also supports project-level features and multiple environments. That makes 
 
 Keep the `python-conda` template simple: it is designed around one canonical project-local `.conda` environment. Use this Pixi template when the project itself needs richer environment composition.
 
-## Positron / VS Code
+## Optional editor and notebook integration
 
-After `pixi install`, select the Python interpreter from the Pixi-managed project environment. Pixi keeps its generated environment under `.pixi/` rather than requiring a globally named Conda environment.
-
-For Jupyter/Positron notebook use, keep `ipykernel` in the Pixi environment.
+After `pixi install`, point your preferred editor or Jupyter client to the Python interpreter in the project-local `.pixi/` environment. No editor integration is required for CLI use. `ipykernel` is included for standard Jupyter-compatible notebooks.
 
 ## Reproducibility
 
