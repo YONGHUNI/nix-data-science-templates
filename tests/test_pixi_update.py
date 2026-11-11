@@ -1,4 +1,5 @@
 """Offline structural regression tests for the monthly Pixi pin updater."""
+import re
 import sys
 from pathlib import Path
 import unittest
@@ -127,6 +128,25 @@ class PixiUpdateTests(unittest.TestCase):
                     original_sha,
                 )
 
+
+    def test_workflows_pin_actions_and_have_no_unresolved_placeholders(self):
+        for name in ("pixi-monthly-update.yml", "pixi-templates-ci.yml"):
+            workflow = (ROOT / ".github" / "workflows" / name).read_text()
+            self.assertNotRegex(workflow, r"__[A-Z_]+__")
+            actions = re.findall(
+                r"^\s*uses:\s*([\w./-]+)@([0-9a-f]{40})\b",
+                workflow, flags=re.MULTILINE,
+            )
+            self.assertGreaterEqual(len(actions), 2, name)
+            self.assertEqual(workflow.count("uses:"), len(actions), name)
+
+        monthly = (
+            ROOT / ".github" / "workflows" / "pixi-monthly-update.yml"
+        ).read_text()
+        self.assertIn("schedule:", monthly)
+        self.assertIn("workflow_dispatch:", monthly)
+        self.assertIn("steps.candidate.outputs.pixi_version", monthly)
+        self.assertIn("peter-evans/create-pull-request@", monthly)
 
 if __name__ == "__main__":
     unittest.main()
