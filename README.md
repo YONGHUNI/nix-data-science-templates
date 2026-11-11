@@ -87,4 +87,22 @@ For full details, see [Python + Pixi](python-pixi/README.md), [Sapelo2 Python + 
 
 ## Pixi version policy (Nov 2026)
 
-The Pixi templates use a **separate** `nixpkgs-pixi` flake input tracking `nixos-unstable`, while the rest of their toolchains remain on `nixos-26.05`. This avoids the Pixi 0.68.1 TLS option mismatch in the stable Nixpkgs package and permits independent Pixi upgrades through `nix flake update nixpkgs-pixi`. Commit each project's `flake.lock` to pin the tested version; do not mistake the upstream release version for the Nixpkgs packaged version. The shell hook translates only incompatible `native`/`system` certificate-option spellings, preserving explicit choices such as `webpki` and `all`.
+**Template creation and project reproducibility are different concerns.** The three Pixi templates intentionally have **no template-side flake.lock**. After using `nix flake init`, the new project runs `nix flake lock` (automatically on first applicable Nix command) and commits its own `flake.lock` and `pixi.lock`.
+
+For predictable installation on Slurm nodes with local Nix stores, the template's `nixpkgs-pixi` input is pinned to a **full, binary-cache-verified Nixpkgs commit** instead of a moving unstable branch. The starting point is Pixi 0.82.1 (`b57afef75289b29747cd49e60cb86c1062542072`), verified on Sapelo2 x86_64-linux without compiling Pixi. The remaining toolchain continues tracking `nixos-26.05` per project lockfile.
+
+### Monthly update policy
+
+The [monthly Pixi updater](.github/workflows/pixi-monthly-update.yml) runs once a month (or manually via **Actions → Monthly verified Pixi update → Run workflow**):
+
+1. Inspect both `nixpkgs-unstable` and `nixos-unstable` at their current commit SHAs.
+2. Evaluate their packaged Pixi versions. Skip candidates with versions not newer than the current pin.
+3. Try the newest candidates in version order with **`nix build --no-link --option max-jobs 0`**. A candidate requiring local source compilation is rejected.
+4. If an eligible candidate exists, update all three Pixi templates and verify their flake/devShell evaluations, the shared Pixi binary and general Python/R devShell execution.
+5. Open a **reviewable pull request**. The workflow never auto-merges and never changes existing projects.
+
+The check runs on a fresh GitHub-hosted `x86_64-linux` environment using the normal Nix binary cache. It verifies *cache availability at check time*, not permanent cache retention, future network access, or real Sapelo2/rootless behavior. Before merging a major change, optionally repeat the Pixi and Positron smoke tests on Sapelo2.
+
+To let scheduled workflows open PRs, enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The workflow requests only repository contents and PR write permissions. GitHub may disable scheduled workflows on public repositories after 60 days of inactivity; manual runs remain available once re-enabled.
+
+The [Pixi template CI](.github/workflows/pixi-templates-ci.yml) validates manual changes as well. No `flake.lock` is added to these three template directories; CI generates temporary lock files outside the repository while evaluating candidates. The shell hook keeps the version-sensitive `PIXI_TLS_ROOT_CERTS` compatibility handling, without overriding explicit `webpki`/`all` choices.
