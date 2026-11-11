@@ -84,3 +84,7 @@ nix flake init -t github:YONGHUNI/nix-data-science-templates
 ```
 
 For full details, see [Python + Pixi](python-pixi/README.md), [Sapelo2 Python + Pixi](python-pixi-sapelo2/README.md), [R + Pixi](r-pixi/README.md), and [LaTeX + Nix](latex-nix/README.md).
+
+## Pixi version policy (Nov 2026)
+
+The Pixi templates use a **separate** `nixpkgs-pixi` flake input tracking `nixos-unstable`, while the rest of their toolchains remain on `nixos-26.05`. This avoids the Pixi 0.68.1 TLS option mismatch in the stable Nixpkgs package and permits independent Pixi upgrades through `nix flake update nixpkgs-pixi`. Commit each project's `flake.lock` to pin the tested version; do not mistake the upstream release version for the Nixpkgs packaged version. The shell hook translates only incompatible `native`/`system` certificate-option spellings, preserving explicit choices such as `webpki` and `all`.
