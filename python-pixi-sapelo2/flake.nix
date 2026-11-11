@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
   # Keep the base toolchain stable while selecting an up-to-date Pixi.
   # Updated by the monthly cache-verified Pixi workflow. No flake.lock ships with the template.
-  inputs.nixpkgs-pixi.url = "github:NixOS/nixpkgs/b57afef75289b29747cd49e60cb86c1062542072";
+  inputs.nixpkgs-pixi.url = "github:NixOS/nixpkgs/4fe25e12eb9f4c744966dd3de5a05246cf098601";
 
   outputs = { nixpkgs, nixpkgs-pixi, ... }:
     let
