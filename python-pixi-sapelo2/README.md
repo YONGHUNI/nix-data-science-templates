@@ -129,3 +129,17 @@ Commit:
 Do not commit `.pixi/` or generated cache/environment files on `/lscratch`.
 
 `flake.lock` pins the Nix side, including the Pixi executable. `pixi.lock` pins Pixi's resolved project dependencies. This gives the Pixi template stronger package-level reproducibility by default than an unlocked `environment.yml` workflow.
+
+## Positron and detached-environment recovery
+
+This preset is optimized for node-local `/lscratch` performance. Such environments are not guaranteed to exist after Slurm changes compute nodes; caches and detached environments need separate lifecycle policies. `pixi.toml` `[workspace].name` may change while a previously created `.pixi/envs` symlink still references the old workspace name. Before manually removing that link, check:
+
+```bash
+readlink .pixi/envs
+ls -ld .pixi/envs
+find /lscratch/$USER/pixi-envs -maxdepth 3 -type d -name envs -print
+```
+
+When the named detached environment is available, prefer Pixi's own `pixi install --frozen` reconciliation. If manually moving an invalid symlink, back up the symlink only; never remove the underlying environment tree without checking whether another project uses it. For critical long-running Positron allocations, prefer placing the detached environment on persistent project storage and keeping `PIXI_CACHE_DIR` on `/lscratch`, subject to site quotas and I/O policy.
+
+For multiple named environments, `pixi run --environment neuralgcm python --version` is meaningful even when the project has no Python in its default environment. Positron's Pixi discovery may run outside `nix develop`, so the separately installed `~/.pixi/bin/pixi` shim must also work in the compute node's rootless Nix setup.
