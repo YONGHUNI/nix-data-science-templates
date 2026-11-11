@@ -11,10 +11,16 @@ from monthly_pixi_update import ROOT, TEMPLATES, current_pin
 
 
 def run(work_dir: Path, *args: str) -> str:
-    result = subprocess.run(
-        ["nix", *args], cwd=work_dir, text=True, capture_output=True,
-        check=True, timeout=900,
-    )
+    try:
+        result = subprocess.run(
+            ["nix", *args], cwd=work_dir, text=True, capture_output=True,
+            check=True, timeout=900,
+        )
+    except subprocess.CalledProcessError as exc:
+        print(f"Failed: nix {' '.join(args)}", flush=True)
+        print((exc.stdout or "")[-2000:], flush=True)
+        print((exc.stderr or "")[-6000:], flush=True)
+        raise
     return result.stdout.strip()
 
 
@@ -39,9 +45,10 @@ def main() -> None:
             # Sapelo2's shellHook requires /lscratch, unavailable on GitHub runners.
             # Its Nix evaluation is checked here; runtime testing requires Sapelo2.
             if template != "python-pixi-sapelo2":
+                # nix develop may need to build its tiny mkShell derivation locally.
+                # Pixi itself was already proven to have a binary substitute above.
                 observed = run(
-                    work_dir, "develop", "--option", "max-jobs", "0",
-                    "--command", "pixi", "--version",
+                    work_dir, "develop", "--command", "pixi", "--version",
                 )
                 if observed != f"pixi {version}":
                     raise AssertionError(f"{template}: unexpected Pixi output {observed!r}")
