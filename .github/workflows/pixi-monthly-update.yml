@@ -1,0 +1,77 @@
+name: Monthly verified Pixi update
+
+on:
+  schedule:
+    # UTC; deliberately avoids the top of the hour to reduce scheduler delays.
+    - cron: "37 7 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: monthly-pixi-update
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    name: Check unstable channels and propose a cached Pixi
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@__CHECKOUT__ # v5
+
+      - name: Test update logic
+        run: python3 -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@__INSTALL__ # v31.11.3
+        with:
+          github_access_token: __TOKEN__
+
+      - name: Check existing pinned templates
+        run: python3 scripts/verify_pixi_templates.py
+
+      - name: Find newer Pixi with a binary substitute
+        id: candidate
+        env:
+          GH_TOKEN: __GH_TOKEN__
+        run: python3 scripts/monthly_pixi_update.py
+
+      - name: Verify proposed pin on all templates
+        if: steps.candidate.outputs.updated == 'true'
+        run: |
+          python3 -m unittest discover -s tests -p "test_*.py" -v
+          python3 scripts/verify_pixi_templates.py
+
+      - name: Open or update reviewable PR
+        if: steps.candidate.outputs.updated == 'true'
+        uses: peter-evans/create-pull-request@__CREATEPR__ # v8
+        with:
+          token: __TOKEN__
+          branch: automation/monthly-pixi-update
+          delete-branch: true
+          commit-message: "chore(pixi): propose cached Pixi __VERSION__"
+          title: "chore(pixi): propose cached Pixi __VERSION__"
+          body: |
+            Monthly review-only update of the Nixpkgs revision used for Pixi.
+
+            - Pixi version: __VERSION__
+            - Nixpkgs candidate: __SHA__
+            - Source channel: __CHANNEL__
+            - Binary substitute on GitHub runner (x86_64-linux): PASS
+            - Template Nix evaluation and available devShells: PASS
+            - Pixi source compilation: disabled (`max-jobs = 0`)
+            - Template flake.lock files: none
+            - Existing project flake.lock / pixi.lock files: untouched
+
+            This is not an automatic merge. Please inspect the changes; for
+            Sapelo2 workflows, verify in an actual rootless Nix / Slurm session
+            before merging significant Pixi upgrades.
+          add-paths: |
+            python-pixi/flake.nix
+            python-pixi-sapelo2/flake.nix
+            r-pixi/flake.nix
