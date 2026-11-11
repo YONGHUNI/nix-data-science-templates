@@ -2,6 +2,8 @@ name: Validate Pixi templates
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "python-pixi/**"
       - "python-pixi-sapelo2/**"
