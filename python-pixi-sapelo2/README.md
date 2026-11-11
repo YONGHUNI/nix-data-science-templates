@@ -143,3 +143,7 @@ find /lscratch/$USER/pixi-envs -maxdepth 3 -type d -name envs -print
 When the named detached environment is available, prefer Pixi's own `pixi install --frozen` reconciliation. If manually moving an invalid symlink, back up the symlink only; never remove the underlying environment tree without checking whether another project uses it. For critical long-running Positron allocations, prefer placing the detached environment on persistent project storage and keeping `PIXI_CACHE_DIR` on `/lscratch`, subject to site quotas and I/O policy.
 
 For multiple named environments, `pixi run --environment neuralgcm python --version` is meaningful even when the project has no Python in its default environment. Positron's Pixi discovery may run outside `nix develop`, so the separately installed `~/.pixi/bin/pixi` shim must also work in the compute node's rootless Nix setup.
+
+## Pixi executable update policy
+
+The template itself intentionally excludes `flake.lock`. New projects resolve and commit their own lockfile. The Pixi Nixpkgs input in this **template** is nevertheless pinned to the latest package revision verified through the monthly cache-only update process; this prevents the template from unexpectedly building Rust/Pixi from source on a fresh Slurm node. See the [repository-level Pixi version policy](../README.md#pixi-version-policy-nov-2026). Updating the template does not change an existing project's `flake.lock`.
